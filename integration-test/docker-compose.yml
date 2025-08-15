@@ -1,0 +1,57 @@
+services:
+  eureka:
+    build : ./eureka
+    ports:
+      - "8761:8761"
+    networks:
+      - eureka-network
+    healthcheck:
+      test: ["CMD", "wget", "-S", "-qO-", "http://localhost:8761/actuator/health"]
+      interval: 1s
+      retries: 5
+      start_period: 3s
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "8081:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka:8761/eureka/
+    networks:
+      - eureka-network
+    healthcheck:
+      test: ["CMD", "wget", "-S", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 1s
+      retries: 5
+      start_period: 3s
+    depends_on:
+      eureka:
+        condition: service_healthy
+
+  go-client:
+    build: ./go-client
+    profiles:
+      - integration-test
+    ports:
+      - "8082:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka:8761/eureka/
+      - CONTAINER_IP=10.5.0.5
+      - APP_ID=go-client
+      - PORT=8080
+    networks:
+      eureka-network:
+        ipv4_address: 10.5.0.5
+    depends_on:
+      eureka:
+        condition: service_healthy
+      gateway:
+        condition: service_healthy
+
+networks:
+  eureka-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1
