@@ -2,8 +2,9 @@
 A Netflix Eureka client for Golang.
 
 ## Core Features
+* Zero dependencies
 * Supports [Eureka's REST operations](https://github.com/netflix/eureka/wiki/eureka-rest-operations)
-* Can provide multiple server URLs for failover
+* Failover if multiple Eureka server URLs are provided
 
 ## Getting Started
 1. Get the package: `go get github.com/cassis163/eureka-go-client/client`
