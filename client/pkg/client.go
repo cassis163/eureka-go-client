@@ -56,23 +56,23 @@ func (c *Client) RegisterInstance(ctx context.Context, ip net.IP, ttl uint, useS
 		EvictionDurationInSecs: ttl,
 	}
 	instance := &eurekaapi.Instance{
-		HostName:       c.Host,
-		InstanceID:     instanceID,
-		App:            c.AppID,
-		IPAddr:         ip.To4().String(),
-		Status:         eurekaapi.UP,
-		DataCenterInfo: *dataCenterInfo,
-		LeaseInfo:      leaseInfo,
-        SecureVipAddress: c.AppID,
-        VipAddress:     c.AppID,
-        SecurePort: &eurekaapi.Port{
-            Value:   c.Port,
-            Enabled: useSSL,
-        },
-        Port: &eurekaapi.Port{
-            Value:   c.Port,
-            Enabled: !useSSL,
-        },
+		HostName:         c.Host,
+		InstanceID:       instanceID,
+		App:              c.AppID,
+		IPAddr:           ip.To4().String(),
+		Status:           eurekaapi.UP,
+		DataCenterInfo:   *dataCenterInfo,
+		LeaseInfo:        leaseInfo,
+		SecureVipAddress: c.AppID,
+		VipAddress:       c.AppID,
+		SecurePort: &eurekaapi.Port{
+			Value:   c.Port,
+			Enabled: useSSL,
+		},
+		Port: &eurekaapi.Port{
+			Value:   c.Port,
+			Enabled: !useSSL,
+		},
 	}
 
 	err := c.eurekaAPIClient.RegisterInstance(ctx, c.AppID, instance)

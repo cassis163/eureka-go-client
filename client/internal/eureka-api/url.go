@@ -29,4 +29,3 @@ func normalizeBaseURL(baseURL string) (string, error) {
 	}
 	return u.String(), nil
 }
-
