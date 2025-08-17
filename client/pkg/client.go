@@ -63,21 +63,17 @@ func (c *Client) RegisterInstance(ctx context.Context, ip net.IP, ttl uint, useS
 		Status:         eurekaapi.UP,
 		DataCenterInfo: *dataCenterInfo,
 		LeaseInfo:      leaseInfo,
-	}
-
-    if useSSL {
-        instance.SecurePort = &eurekaapi.Port{
-			Value:   c.Port,
-			Enabled: true,
-		}
-        instance.SecureVipAddress = fmt.Sprintf("https://%s:%d", c.Host, c.Port)
-    } else {
-        instance.Port = &eurekaapi.Port{
+        SecureVipAddress: c.AppID,
+        VipAddress:     c.AppID,
+        SecurePort: &eurekaapi.Port{
             Value:   c.Port,
-            Enabled: true,
-        }
-        instance.VipAddress = fmt.Sprintf("http://%s:%d", c.Host, c.Port)
-    }
+            Enabled: useSSL,
+        },
+        Port: &eurekaapi.Port{
+            Value:   c.Port,
+            Enabled: !useSSL,
+        },
+	}
 
 	err := c.eurekaAPIClient.RegisterInstance(ctx, c.AppID, instance)
 	if err != nil {

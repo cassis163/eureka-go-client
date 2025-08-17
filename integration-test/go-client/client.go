@@ -42,13 +42,6 @@ func main() {
         log.Printf("Instance registered successfully with ID: %s", instance.ID)
     }
 
-    apps, err := eurekaClient.GetAllApplications(context.Background())
-    if err != nil {
-        log.Fatalf("Failed to get all applications: %v", err)
-    } else {
-        log.Printf("Retrieved applications: %v", apps)
-    }
-
     go periodicallySendHeartbeat(eurekaClient, instance.ID, time.Duration(ttl)*time.Second)
     startServer()
 }

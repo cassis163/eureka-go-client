@@ -6,11 +6,16 @@ import (
     "net/http"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func helloWorldHandler(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, "Hello, World!")
 }
 
+func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+    fmt.Fprintf(w, "OK")
+}
+
 func startServer() {
-    http.HandleFunc("/hello-world", handler)
+    http.HandleFunc("/hello-world", helloWorldHandler)
+    http.HandleFunc("/health", healthCheckHandler)
     log.Fatal(http.ListenAndServe(":8080", nil))
 }

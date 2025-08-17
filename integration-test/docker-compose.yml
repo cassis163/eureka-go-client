@@ -42,8 +42,27 @@ services:
     networks:
       eureka-network:
         ipv4_address: 10.5.0.5
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -S -qO- http://localhost:8080/health"]
+      interval: 15s
+      retries: 5
+      start_period: 3s
     depends_on:
       eureka:
+        condition: service_healthy
+      gateway:
+        condition: service_healthy
+
+  smoke-test:
+    image: curlimages/curl:8.15.0
+    profiles:
+      - integration-test
+    # Wait for a few seconds, since the gateway might not be ready immediately
+    entrypoint: ["sh", "-c", "sleep 3 && curl -s http://gateway:8080/go-client/hello-world | grep -qx 'Hello, World!'"]
+    networks:
+      - eureka-network
+    depends_on:
+      go-client:
         condition: service_healthy
       gateway:
         condition: service_healthy
