@@ -1,0 +1,51 @@
+name: Test
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "client/**"
+      - ".github/workflows/test.yml"
+  pull_request:
+    paths:
+      - "client/**"
+      - ".github/workflows/test.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    defaults:
+      run:
+        working-directory: client
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24.5
+          check-latest: true
+          cache: true
+          cache-dependency-path: |
+            client/go.sum
+
+      - name: Verify module
+        run: |
+          go env
+          go mod download
+          go mod verify
+
+      - name: Lint (go vet)
+        run: go vet ./...
+
+      - name: Build
+        run: go build ./...
+
+      - name: Test
+        run: go test -v ./...
