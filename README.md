@@ -30,10 +30,10 @@ const (
 
 func main() {
 	client, err := eurekaClient.NewClient(
-		[]string{"http://localhost:8761/eureka"}, // Eureka server URLs, multiple can be provided if failover is desired
-		appID,                                    // Your application's ID
-		ip,                                       // Your application's IP address
-		8080,                                     // Your application's port
+		[]string{"http://localhost:8761/eureka/"}, // Eureka server URLs, multiple can be provided if failover is desired
+		appID,                                     // Your application's ID
+		ip,                                        // Your application's IP address
+		8080,                                      // Your application's port
 	)
 	if err != nil {
 		log.Fatalf("Failed to create Eureka client: %v", err)
