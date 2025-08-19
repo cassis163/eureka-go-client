@@ -7,13 +7,11 @@ import (
 	"time"
 
 	env "github.com/caarlos0/env/v11"
-	lib "github.com/cassis163/eureka-go-client/client/pkg"
+	lib "github.com/cassis163/eureka-go-client/client"
+	"github.com/cassis163/eureka-go-client/integration-test/go-client/internal"
 )
 
-const (
-	appID = "go-client"
-	ttl   = 3
-)
+const ttl = 3
 
 type Env struct {
 	ContainerIP string `env:"CONTAINER_IP"`
@@ -32,28 +30,28 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create Eureka client: %v", err)
 	} else {
-        log.Printf("Eureka client created successfully for app ID: %s", cfg.AppID)
-    }
+		log.Printf("Eureka client created successfully for app ID: %s", cfg.AppID)
+	}
 
 	instance, err := eurekaClient.RegisterInstance(context.Background(), net.ParseIP(cfg.ContainerIP), ttl, false)
 	if err != nil {
 		log.Fatalf("Failed to register instance: %v", err)
 	} else {
-        log.Printf("Instance registered successfully with ID: %s", instance.ID)
-    }
+		log.Printf("Instance registered successfully with ID: %s", instance.ID)
+	}
 
-    go periodicallySendHeartbeat(eurekaClient, instance.ID, time.Duration(ttl)*time.Second)
-    startServer()
+	go periodicallySendHeartbeat(eurekaClient, instance.ID, time.Duration(ttl)*time.Second)
+	internal.StartServer()
 }
 
 func periodicallySendHeartbeat(client lib.ClientAPI, instanceID string, interval time.Duration) {
-    for {
-        err := client.Heartbeat(context.Background(), instanceID)
-        if err != nil {
-            log.Printf("Failed to send heartbeat: %v", err)
-        } else {
-            log.Printf("Heartbeat sent for instance ID: %s", instanceID)
-        }
-        time.Sleep(interval)
-    }
+	for {
+		err := client.Heartbeat(context.Background(), instanceID)
+		if err != nil {
+			log.Printf("Failed to send heartbeat: %v", err)
+		} else {
+			log.Printf("Heartbeat sent for instance ID: %s", instanceID)
+		}
+		time.Sleep(interval)
+	}
 }
