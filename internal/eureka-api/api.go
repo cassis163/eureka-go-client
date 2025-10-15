@@ -86,13 +86,13 @@ func NewEurekaAPIClient(baseURLs ...string) (EurekaAPI, error) {
 }
 
 func (c *EurekaAPIClient) WrapTransport(wrap func(http.RoundTripper) http.RoundTripper) {
-    if wrap == nil {
-        return
-    }
-    if c.client == nil || c.client.Transport == nil {
-        return
-    }
-    c.client.Transport = wrap(c.client.Transport)
+	if wrap == nil {
+		return
+	}
+	if c.client == nil || c.client.Transport == nil {
+		return
+	}
+	c.client.Transport = wrap(c.client.Transport)
 }
 
 // ---------- XML Models ----------

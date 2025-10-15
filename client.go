@@ -9,24 +9,33 @@ import (
 )
 
 type Client struct {
+	appID      string
+	host       string
+	port       int
+	instanceID string
+
 	eurekaAPIClient eurekaapi.EurekaAPI
-	AppID           string
-	Host            string
-	Port            int
 }
 
 type ClientAPI interface {
 	RegisterInstance(ctx context.Context, ip net.IP, ttl uint, useSSL bool) (*Instance, error)
-	Heartbeat(ctx context.Context, instanceID string) error
+	Heartbeat(ctx context.Context) error
 	GetAllApplications(ctx context.Context) (eurekaapi.Applications, error)
-	UnregisterInstance(ctx context.Context, instanceID string) error
-	GetApplication(ctx context.Context, appID string) (eurekaapi.Application, error)
-	GetInstance(ctx context.Context, appID, instanceID string) (eurekaapi.Instance, error)
+	UnregisterInstance(ctx context.Context) error
+	GetApplication(ctx context.Context) (eurekaapi.Application, error)
+	GetInstance(ctx context.Context) (eurekaapi.Instance, error)
 	GetByVIP(ctx context.Context, vip string) (eurekaapi.Applications, error)
 	GetBySecureVIP(ctx context.Context, svip string) (eurekaapi.Applications, error)
-	SetStatus(ctx context.Context, instanceID, status string) error
-	ClearStatusOverride(ctx context.Context, instanceID string, suggestedFallback string) error
-	UpdateMetadata(ctx context.Context, instanceID string, kv map[string]string) error
+	SetStatus(ctx context.Context, status string) error
+	ClearStatusOverride(ctx context.Context, suggestedFallback string) error
+	UpdateMetadata(ctx context.Context, kv map[string]string) error
+
+    // Getters
+    InstanceID() string
+}
+
+func (c *Client) InstanceID() string {
+	return c.instanceID
 }
 
 func NewClient(eurekaServiceURLs []string, appID string, host string, port int) (ClientAPI, error) {
@@ -36,10 +45,12 @@ func NewClient(eurekaServiceURLs []string, appID string, host string, port int) 
 	}
 
 	return &Client{
+		appID:      appID,
+		host:       host,
+		port:       port,
+		instanceID: fmt.Sprintf("%s:%s:%d", host, appID, port),
+
 		eurekaAPIClient: eurekaAPIClient,
-		AppID:           appID,
-		Host:            host,
-		Port:            port,
 	}, nil
 }
 
@@ -48,7 +59,6 @@ type Instance struct {
 }
 
 func (c *Client) RegisterInstance(ctx context.Context, ip net.IP, ttl uint, useSSL bool) (*Instance, error) {
-	instanceID := fmt.Sprintf("%s:%s:%d", c.Host, c.AppID, c.Port)
 	dataCenterInfo := &eurekaapi.DataCenter{
 		Name: eurekaapi.DefaultDataCenter,
 	}
@@ -56,41 +66,41 @@ func (c *Client) RegisterInstance(ctx context.Context, ip net.IP, ttl uint, useS
 		EvictionDurationInSecs: ttl,
 	}
 	instance := &eurekaapi.Instance{
-		HostName:         c.Host,
-		InstanceID:       instanceID,
-		App:              c.AppID,
+		HostName:         c.host,
+		InstanceID:       c.instanceID,
+		App:              c.appID,
 		IPAddr:           ip.To4().String(),
 		Status:           eurekaapi.UP,
 		DataCenterInfo:   *dataCenterInfo,
 		LeaseInfo:        leaseInfo,
-		SecureVipAddress: c.AppID,
-		VipAddress:       c.AppID,
+		SecureVipAddress: c.appID,
+		VipAddress:       c.appID,
 		SecurePort: &eurekaapi.Port{
-			Value:   c.Port,
+			Value:   c.port,
 			Enabled: useSSL,
 		},
 		Port: &eurekaapi.Port{
-			Value:   c.Port,
+			Value:   c.port,
 			Enabled: !useSSL,
 		},
 	}
 
-	err := c.eurekaAPIClient.RegisterInstance(ctx, c.AppID, instance)
+	err := c.eurekaAPIClient.RegisterInstance(ctx, c.appID, instance)
 	if err != nil {
 		return nil, fmt.Errorf("failed to register instance: %w", err)
 	}
 	return &Instance{
-		ID: instanceID,
+		ID: c.instanceID,
 	}, nil
 }
 
-func (c *Client) Heartbeat(ctx context.Context, instanceID string) error {
-	exists, err := c.eurekaAPIClient.Heartbeat(ctx, c.AppID, instanceID)
+func (c *Client) Heartbeat(ctx context.Context) error {
+	exists, err := c.eurekaAPIClient.Heartbeat(ctx, c.appID, c.instanceID)
 	if err != nil {
 		return fmt.Errorf("failed to send heartbeat: %w", err)
 	}
 	if !exists {
-		return fmt.Errorf("instance %s does not exist", instanceID)
+		return fmt.Errorf("instance %s does not exist", c.instanceID)
 	}
 	return nil
 }
@@ -103,26 +113,26 @@ func (c *Client) GetAllApplications(ctx context.Context) (eurekaapi.Applications
 	return applications, nil
 }
 
-func (c *Client) UnregisterInstance(ctx context.Context, instanceID string) error {
-	err := c.eurekaAPIClient.UnregisterInstance(ctx, c.AppID, instanceID)
+func (c *Client) UnregisterInstance(ctx context.Context) error {
+	err := c.eurekaAPIClient.UnregisterInstance(ctx, c.appID, c.instanceID)
 	if err != nil {
 		return fmt.Errorf("failed to unregister instance: %w", err)
 	}
 	return nil
 }
 
-func (c *Client) GetApplication(ctx context.Context, appID string) (eurekaapi.Application, error) {
-	application, err := c.eurekaAPIClient.GetApplication(ctx, appID)
+func (c *Client) GetApplication(ctx context.Context) (eurekaapi.Application, error) {
+	application, err := c.eurekaAPIClient.GetApplication(ctx, c.appID)
 	if err != nil {
-		return eurekaapi.Application{}, fmt.Errorf("failed to get application %s: %w", appID, err)
+		return eurekaapi.Application{}, fmt.Errorf("failed to get application %s: %w", c.appID, err)
 	}
 	return application, nil
 }
 
-func (c *Client) GetInstance(ctx context.Context, appID, instanceID string) (eurekaapi.Instance, error) {
-	instance, err := c.eurekaAPIClient.GetInstance(ctx, appID, instanceID)
+func (c *Client) GetInstance(ctx context.Context) (eurekaapi.Instance, error) {
+	instance, err := c.eurekaAPIClient.GetInstance(ctx, c.appID, c.instanceID)
 	if err != nil {
-		return eurekaapi.Instance{}, fmt.Errorf("failed to get instance %s of application %s: %w", instanceID, appID, err)
+		return eurekaapi.Instance{}, fmt.Errorf("failed to get instance %s of application %s: %w", c.instanceID, c.appID, err)
 	}
 	return instance, nil
 }
@@ -143,26 +153,26 @@ func (c *Client) GetBySecureVIP(ctx context.Context, svip string) (eurekaapi.App
 	return applications, nil
 }
 
-func (c *Client) SetStatus(ctx context.Context, instanceID, status string) error {
-	err := c.eurekaAPIClient.SetStatus(ctx, c.AppID, instanceID, status)
+func (c *Client) SetStatus(ctx context.Context, status string) error {
+	err := c.eurekaAPIClient.SetStatus(ctx, c.appID, c.instanceID, status)
 	if err != nil {
-		return fmt.Errorf("failed to set status %s for instance %s: %w", status, instanceID, err)
+		return fmt.Errorf("failed to set status %s for instance %s: %w", status, c.instanceID, err)
 	}
 	return nil
 }
 
-func (c *Client) ClearStatusOverride(ctx context.Context, instanceID string, suggestedFallback string) error {
-	err := c.eurekaAPIClient.ClearStatusOverride(ctx, c.AppID, instanceID, suggestedFallback)
+func (c *Client) ClearStatusOverride(ctx context.Context, suggestedFallback string) error {
+	err := c.eurekaAPIClient.ClearStatusOverride(ctx, c.appID, c.instanceID, suggestedFallback)
 	if err != nil {
-		return fmt.Errorf("failed to clear status override for instance %s: %w", instanceID, err)
+		return fmt.Errorf("failed to clear status override for instance %s: %w", c.instanceID, err)
 	}
 	return nil
 }
 
-func (c *Client) UpdateMetadata(ctx context.Context, instanceID string, kv map[string]string) error {
-	err := c.eurekaAPIClient.UpdateMetadata(ctx, c.AppID, instanceID, kv)
+func (c *Client) UpdateMetadata(ctx context.Context, kv map[string]string) error {
+	err := c.eurekaAPIClient.UpdateMetadata(ctx, c.appID, c.instanceID, kv)
 	if err != nil {
-		return fmt.Errorf("failed to update metadata for instance %s: %w", instanceID, err)
+		return fmt.Errorf("failed to update metadata for instance %s: %w", c.instanceID, err)
 	}
 	return nil
 }
