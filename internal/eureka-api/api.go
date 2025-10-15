@@ -27,6 +27,8 @@ const (
 )
 
 type EurekaAPI interface {
+    WrapTransport(wrap func(http.RoundTripper) http.RoundTripper)
+    
 	// Register new application instance: POST /apps/{appID}
 	RegisterInstance(ctx context.Context, appID string, inst *Instance) error
 	// De-register application instance: DELETE /apps/{appID}/{instanceID}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 
 	eurekaapi "github.com/cassis163/eureka-go-client/internal/eureka-api"
 )
@@ -18,6 +19,8 @@ type Client struct {
 }
 
 type ClientAPI interface {
+    WrapTransport(wrap func(http.RoundTripper) http.RoundTripper)
+
 	RegisterInstance(ctx context.Context, ip net.IP, ttl uint, useSSL bool) (*Instance, error)
 	Heartbeat(ctx context.Context) error
 	GetAllApplications(ctx context.Context) (eurekaapi.Applications, error)
@@ -52,6 +55,13 @@ func NewClient(eurekaServiceURLs []string, appID string, host string, port int) 
 
 		eurekaAPIClient: eurekaAPIClient,
 	}, nil
+}
+
+func (c *Client) WrapTransport(wrap func(http.RoundTripper) http.RoundTripper) {
+    if wrap == nil {
+        return
+    }
+    c.eurekaAPIClient.WrapTransport(wrap)
 }
 
 type Instance struct {
