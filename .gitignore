@@ -1,4 +1,7 @@
 .direnv/
+# Ignore build outputs from performing a nix-build or `nix build` command
+result
+result-*
 
 # Created by https://www.toptal.com/developers/gitignore/api/go
 # Edit at https://www.toptal.com/developers/gitignore?templates=go
