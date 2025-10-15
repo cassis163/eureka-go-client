@@ -7,7 +7,7 @@ A Netflix Eureka client for Golang.
 * Failover if multiple Eureka server URLs are provided
 
 ## Getting Started
-1. Get the package: `go get github.com/cassis163/eureka-go-client/client`
+1. Get the package: `go get github.com/cassis163/eureka-go-client`
 
 2. Use it:
 ```go
@@ -19,7 +19,7 @@ import (
 	"net"
 	"time"
 
-	eurekaClient "github.com/cassis163/eureka-go-client/client/pkg"
+	eurekaClient "github.com/cassis163/eureka-go-client/pkg"
 )
 
 const (

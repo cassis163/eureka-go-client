@@ -7,7 +7,7 @@ import (
 	"time"
 
 	env "github.com/caarlos0/env/v11"
-	lib "github.com/cassis163/eureka-go-client/client"
+	lib "github.com/cassis163/eureka-go-client"
 	"github.com/cassis163/eureka-go-client/integration-test/go-client/internal"
 )
 
