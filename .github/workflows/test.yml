@@ -4,11 +4,11 @@ on:
   push:
     branches: [ main ]
     paths:
-      - "client/**"
+      - "**"
       - ".github/workflows/test.yml"
   pull_request:
     paths:
-      - "client/**"
+      - "**"
       - ".github/workflows/test.yml"
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: client
+        working-directory: .
 
     steps:
       - name: Checkout
