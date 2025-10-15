@@ -6,12 +6,11 @@ import (
 	"time"
 )
 
-func helloWorldHandler(w http.ResponseWriter, r *http.Request) {
-	// Optional: honor request cancel if doing work; quick responses don't need checks.
+func helloWorldHandler(w http.ResponseWriter, _ *http.Request) {
 	fmt.Fprint(w, "Hello, World!")
 }
 
-func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+func healthCheckHandler(w http.ResponseWriter, _ *http.Request) {
 	fmt.Fprint(w, "OK")
 }
 

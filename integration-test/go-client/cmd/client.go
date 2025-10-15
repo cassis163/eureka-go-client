@@ -61,6 +61,9 @@ func main() {
     go func() {
         defer wg.Done()
         server = internal.NewServer(":8080")
+        if err := server.ListenAndServe(); err != nil {
+            log.Fatalf("failed to start server: %v", err)
+        }
     }()
 
     <- ctx.Done()
