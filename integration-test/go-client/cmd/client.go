@@ -63,8 +63,6 @@ func main() {
         server = internal.NewServer(":8080")
     }()
 
-    wg.Wait()
-
     <- ctx.Done()
 
     log.Println("Shutdown signal received, starting graceful shutdown...")
