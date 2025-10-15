@@ -27,6 +27,10 @@ const (
 )
 
 type EurekaAPI interface {
+    // # Program API
+    WrapTransport(wrap func(http.RoundTripper) http.RoundTripper)
+
+    // # Netflix Eureka API
 	// Register new application instance: POST /apps/{appID}
 	RegisterInstance(ctx context.Context, appID string, inst *Instance) error
 	// De-register application instance: DELETE /apps/{appID}/{instanceID}
