@@ -10,6 +10,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 )
@@ -304,7 +305,7 @@ func (c *EurekaAPIClient) GetInstance(ctx context.Context, appID, instanceID str
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return Instance{}, fmt.Errorf("unexpected response status for instance %s of application %s: %s", instanceID, appID, resp.Status)
+		return Instance{}, fmt.Errorf("unexpected response status for instance %s of application %s: %d", instanceID, appID, resp.StatusCode)
 	}
 
 	var inst Instance
@@ -388,7 +389,7 @@ func (c *EurekaAPIClient) SetStatus(ctx context.Context, appID, instanceID, stat
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("unexpected response status when setting status for instance %s of application %s: %s", instanceID, appID, resp.Status)
+		return fmt.Errorf("unexpected response status when setting status for instance %s of application %s: %d", instanceID, appID, resp.StatusCode)
 	}
 	return nil
 }
@@ -411,7 +412,7 @@ func (c *EurekaAPIClient) ClearStatusOverride(ctx context.Context, appID, instan
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("unexpected response status when clearing status override for instance %s of application %s: %s", instanceID, appID, resp.Status)
+		return fmt.Errorf("unexpected response status when clearing status override for instance %s of application %s: %d", instanceID, appID, resp.StatusCode)
 	}
 	return nil
 }
@@ -446,7 +447,7 @@ func (c *EurekaAPIClient) UpdateMetadata(ctx context.Context, appID, instanceID 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("unexpected response status when updating metadata for instance %s of application %s: %s", instanceID, appID, resp.Status)
+		return fmt.Errorf("unexpected response status when updating metadata for instance %s of application %s: %d", instanceID, appID, resp.StatusCode)
 	}
 	return nil
 }
@@ -468,8 +469,12 @@ func (c *EurekaAPIClient) UnregisterInstance(ctx context.Context, appID, instanc
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("unexpected response status when unregistering instance %s of application %s: %s", instanceID, appID, resp.Status)
+    expectedStatusCodes := []int{
+        http.StatusOK,
+        http.StatusNoContent,
+    }
+	if !slices.Contains(expectedStatusCodes, resp.StatusCode) {
+		return fmt.Errorf("unexpected response status when unregistering instance %s of application %s: %d", instanceID, appID, resp.StatusCode)
 	}
 	return nil
 }
