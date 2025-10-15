@@ -40,16 +40,14 @@ func main() {
 	)
 	if err != nil {
 		log.Fatalf("Failed to create Eureka client: %v", err)
-	} else {
-		log.Printf("Eureka client created successfully for app ID: %s", appID)
 	}
+    log.Printf("Eureka client created successfully for app ID: %s", appID)
 
 	instance, err := client.RegisterInstance(ctx, net.ParseIP(ip), ttl, false)
 	if err != nil {
 		log.Fatalf("Failed to register instance: %v", err)
-	} else {
-		log.Printf("Instance registered successfully with ID: %s", instance.ID)
 	}
+    log.Printf("Instance registered successfully with ID: %s", instance.ID)
 
     var wg sync.WaitGroup
 
